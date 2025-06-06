@@ -42,7 +42,7 @@ typedef int32 bool32;
 #define global static
 
 #define VERSION "Version Number: 00.00.01"
-#define LOG_NAME "GameClock.Log"
+#define LOG_NAME "C:\\Users\\xbruc\\Game Log\\GameLog.Log"
 
 global int64 GlobalPerfCountFrequency;
 
@@ -95,6 +95,18 @@ GetLocalTimeAsStr( char* Buffer, size_t SizeOfBuffer )
 	return Valid;
 }
 
+internal void
+DisplayTitle()
+{
+	printf("  _______      ___      .___  ___.  _______     __        ______     _______   _______  _______ .______\n");
+	printf(" /  _____|    /   \\     |   \\/   | |   ____|   |  |      /  __  \\   /  _____| /  _____||   ____||   _  \\\n");
+	printf("|  |  __     /  ^  \\    |  \\  /  | |  |__      |  |     |  |  |  | |  |  __  |  |  __  |  |__   |  |_)  |\n");
+	printf("|  | |_ |   /  /_\\  \\   |  |\\/|  | |   __|     |  |     |  |  |  | |  | |_ | |  | |_ | |   __|  |      /\n");
+	printf("|  |__| |  /  _____  \\  |  |  |  | |  |____    |  `----.|  `--'  | |  |__| | |  |__| | |  |____ |  |\\  \\----.\n");
+	printf(" \\______| /__/     \\__\\ |__|  |__| |_______|   |_______| \\______/   \\______|  \\______| |_______|| _| `._____|\n");
+
+}
+
 int main( int argc, char** argv )
 {
 	LARGE_INTEGER FileSize;
@@ -115,7 +127,7 @@ int main( int argc, char** argv )
 		{
 			OutputDebugStringA("ERROR: COULD NOT OPEN LOG FILE, CREATING NEW LOG FILE\n");
 			LogFile = CreateFileA(
-				"GameClock.Log",
+				LOG_NAME,
 				GENERIC_WRITE | GENERIC_READ,
 				FILE_SHARE_READ | FILE_SHARE_WRITE,
 				0,
@@ -141,6 +153,8 @@ int main( int argc, char** argv )
 		//TODO: Check for asctime_s & localtime_s errors
 		//		Ability to take breaks and still be reliable timing
 
+		DisplayTitle();
+
 		char UserInput[256] = {};
 		char TextBuffer[512] = {};
 		char TimeFmtStr[256] = {};
@@ -163,7 +177,7 @@ int main( int argc, char** argv )
 		//NOTE: Setting File Pointer to the end of the file
 		SetFilePointer( LogFile, FileSize.LowPart, NULL, FILE_BEGIN );
 
-		OutputDebugStringA("Input Game Name: ");
+		printf("Input Game Name: ");
 		while( !UserInput[0] )
 		{
 			fgets( UserInput, sizeof( UserInput ), stdin );
@@ -177,6 +191,7 @@ int main( int argc, char** argv )
 		WriteBufferToFile( &LogFile, (char*)TextBuffer, sizeof(TextBuffer) );
 		QueryPerformanceCounter( &StartTime );
 
+		printf("Started Playing\n");
 		while( 1 )
 		{
 			fgets( (char*)UserInput, sizeof(UserInput), stdin );
@@ -187,7 +202,7 @@ int main( int argc, char** argv )
 
 			if(*UserInput == '\n')
 			{
-				OutputDebugStringA("End Timer\n");
+				printf("Stopped Playing\n");
 				break;
 			}
 		}
