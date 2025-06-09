@@ -159,12 +159,11 @@ int main( int argc, char** argv )
 		char TextBuffer[512] = {};
 		char TimeFmtStr[256] = {};
 		LARGE_INTEGER StartTime;
+		LARGE_INTEGER BreakTime;
 		LARGE_INTEGER EndTime;
 		LARGE_INTEGER PerfFrequency;
-
-		//asctime_s
-		//time_t StartBreak_DateTime;
-		//time_t EndBreak_DateTime;
+		real32 TotalSeconds = 0;
+		bool32 Breaking = false;
 
 		QueryPerformanceFrequency( &PerfFrequency );
 		GlobalPerfCountFrequency = PerfFrequency.QuadPart;
@@ -189,31 +188,51 @@ int main( int argc, char** argv )
 		_snprintf_s( TextBuffer, sizeof(TextBuffer), "Game: %s\r\nStart Time: %s\r\n", UserInput, TimeFmtStr );
 
 		WriteBufferToFile( &LogFile, (char*)TextBuffer, sizeof(TextBuffer) );
-		QueryPerformanceCounter( &StartTime );
 
 		printf("Started Playing\n");
+		QueryPerformanceCounter( &StartTime );
 		while( 1 )
 		{
 			fgets( (char*)UserInput, sizeof(UserInput), stdin );
 			if(*UserInput == 'b')
 			{
-				OutputDebugStringA("Taking a break!!!\n");
+
+				if( !Breaking )
+				{
+					QueryPerformanceCounter( &BreakTime );
+					TotalSeconds += Win32_GetSecondsElapsed( StartTime, BreakTime );
+					StartTime.QuadPart = 0;
+					GetLocalTimeAsStr( TimeFmtStr, sizeof(TimeFmtStr) );
+					_snprintf_s( TextBuffer, sizeof(TextBuffer), "Start Break: %s\r\n", TimeFmtStr );
+					WriteBufferToFile( &LogFile, (char*)TextBuffer, sizeof(TextBuffer) );
+					printf("Break Start\n");
+					Breaking = true;
+				}
+				else
+				{
+					QueryPerformanceCounter( &StartTime );
+					GetLocalTimeAsStr( TimeFmtStr, sizeof(TimeFmtStr) );
+					_snprintf_s( TextBuffer, sizeof(TextBuffer), "End Break: %s\r\n", TimeFmtStr );
+					WriteBufferToFile( &LogFile, (char*)TextBuffer, sizeof(TextBuffer) );
+					printf("Break End\n");
+					Breaking = false;
+				}
 			}
 
 			if(*UserInput == '\n')
 			{
-				printf("Stopped Playing\n");
+				OutputDebugStringA("Stopped Logging\n");
 				break;
 			}
 		}
-
 		QueryPerformanceCounter( &EndTime );
+		printf("Stopped Playing\n");
 
 		GetLocalTimeAsStr( TimeFmtStr, sizeof(TimeFmtStr) );
 		_snprintf_s( TextBuffer, sizeof(TextBuffer), "End Time: %s\r\n", TimeFmtStr );
 		WriteBufferToFile( &LogFile, (char*)TextBuffer, sizeof(TextBuffer) );
 
-		real32 TotalSeconds = Win32_GetSecondsElapsed( StartTime, EndTime );
+		TotalSeconds += Win32_GetSecondsElapsed( StartTime, EndTime );
 		real32 TotalMinutes = TotalSeconds / 60;
 		real32 TotalHours   = TotalMinutes / 60;
 
